@@ -1,6 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { Account, AccountBrief, UsageSummary, UsageEventsResponse } from "./types";
 
+// 获取操作系统类型
+export async function getOsType(): Promise<string> {
+  return invoke("get_os_type");
+}
+
 // 添加账号（通过 Cookies）
 export async function addAccount(cookies: string): Promise<Account> {
   return invoke("add_account", { cookies });

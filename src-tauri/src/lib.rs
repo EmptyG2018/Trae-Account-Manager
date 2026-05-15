@@ -31,6 +31,19 @@ impl From<anyhow::Error> for ApiError {
 
 type Result<T> = std::result::Result<T, ApiError>;
 
+/// 获取操作系统类型
+#[tauri::command]
+fn get_os_type() -> String {
+    #[cfg(target_os = "macos")]
+    return "macos".to_string();
+    #[cfg(target_os = "windows")]
+    return "windows".to_string();
+    #[cfg(target_os = "linux")]
+    return "linux".to_string();
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    return "unknown".to_string()
+}
+
 // ============ Tauri 命令 ============
 
 /// 添加账号（通过 Token，可选 Cookies）
@@ -220,6 +233,7 @@ pub fn run() {
             account_manager: Arc::new(Mutex::new(account_manager)),
         })
         .invoke_handler(tauri::generate_handler![
+            get_os_type,
             add_account_by_token,
             remove_account,
             get_accounts,

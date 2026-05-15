@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Trash2, Upload, Download, RefreshCw, LayoutGrid, List, Plus, X } from "lucide-react";
+import { TitleBar } from "./components/TitleBar";
 import { Sidebar } from "./components/Sidebar";
 import { AccountCard } from "./components/AccountCard";
 import { AccountListItem } from "./components/AccountListItem";
@@ -410,10 +411,12 @@ function App() {
   }).length;
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
+      <TitleBar />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden">
         {error && (
           <div className="flex items-center justify-between bg-destructive/10 px-4 py-2 text-sm text-destructive">
             <span>{error}</span>
@@ -583,6 +586,7 @@ function App() {
             </div>
           </>
         )}
+        </div>
       </div>
 
       <Toast messages={toasts} onRemove={removeToast} />
