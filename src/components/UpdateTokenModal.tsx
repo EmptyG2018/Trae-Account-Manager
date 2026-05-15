@@ -1,4 +1,14 @@
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface UpdateTokenModalProps {
   isOpen: boolean;
@@ -19,48 +29,27 @@ export function UpdateTokenModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (!isOpen) return null;
-
-  // 从输入中提取 Token
   const extractToken = (input: string): string | null => {
     const trimmed = input.trim();
 
-    // 情况1: 直接是 JWT Token (以 eyJ 开头)
     if (trimmed.startsWith("eyJ")) {
       return trimmed;
     }
 
-    // 情况2: 是 JSON 响应，尝试解析
     try {
       const json = JSON.parse(trimmed);
-
-      // GetUserToken 接口的响应格式
-      if (json.Result?.Token) {
-        return json.Result.Token;
-      }
-
-      // 可能是其他格式
-      if (json.token) {
-        return json.token;
-      }
-      if (json.Token) {
-        return json.Token;
-      }
+      if (json.Result?.Token) return json.Result.Token;
+      if (json.token) return json.token;
+      if (json.Token) return json.Token;
     } catch {
-      // 不是有效的 JSON，继续尝试其他方式
+      // not JSON
     }
 
-    // 情况3: 尝试用正则提取 Token
     const tokenMatch = trimmed.match(/"Token"\s*:\s*"(eyJ[^"]+)"/);
-    if (tokenMatch) {
-      return tokenMatch[1];
-    }
+    if (tokenMatch) return tokenMatch[1];
 
-    // 情况4: 尝试提取任何 eyJ 开头的字符串
     const jwtMatch = trimmed.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);
-    if (jwtMatch) {
-      return jwtMatch[0];
-    }
+    if (jwtMatch) return jwtMatch[0];
 
     return null;
   };
@@ -101,52 +90,51 @@ export function UpdateTokenModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>更新 Token</h2>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>更新 Token</DialogTitle>
+        </DialogHeader>
 
-        <p className="modal-desc">
+        <p className="text-sm text-muted-foreground">
           为账号 <strong>{accountName}</strong> 更新 Token。
           <br />
-          <small>请确保新 Token 属于同一个用户，否则更新会失败。</small>
+          请确保新 Token 属于同一个用户，否则更新会失败。
         </p>
 
-        <div className="token-help">
-          <details>
-            <summary>如何获取新 Token？</summary>
-            <ol>
-              <li>打开 <a href="https://www.trae.ai/account-setting#usage" target="_blank" rel="noopener noreferrer">trae.ai 账号设置页面</a> 并登录对应账号</li>
-              <li>按 <kbd>F12</kbd> 打开开发者工具</li>
-              <li>切换到 <strong>Network</strong> 标签</li>
-              <li>刷新页面</li>
-   <li>在请求列表中找到 <code>GetUserToken</code></li>
-              <li>点击该请求，在右侧找到 <strong>Response</strong> 标签</li>
-              <li>复制整个响应内容，粘贴到下方</li>
-            </ol>
-          </details>
-        </div>
+        <details className="text-sm">
+          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+            如何获取新 Token？
+          </summary>
+          <ol className="mt-2 space-y-1 pl-4 text-muted-foreground [&_li]:list-decimal">
+            <li>打开 <a href="https://www.trae.ai/account-setting#usage" target="_blank" rel="noopener noreferrer" className="text-primary underline">trae.ai 账号设置页面</a> 并登录</li>
+            <li>按 <kbd className="rounded bg-muted px-1 py-0.5 text-xs">F12</kbd> 打开开发者工具，切换到 <strong>Network</strong> 标签</li>
+            <li>刷新页面，在请求列表中找到 <code className="rounded bg-muted px-1 text-xs">GetUserToken</code></li>
+            <li>点击该请求，在右侧 <strong>Response</strong> 标签中复制整个响应内容</li>
+          </ol>
+        </details>
 
-        <form onSubmit={handleSubmit}>
-          <textarea
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <Textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder='粘贴新的 Token 或 API 响应...'
-            rows={8}
+            placeholder="粘贴新的 Token 或 API 响应..."
+            rows={6}
             disabled={loading}
           />
 
-          {error && <div className="error-message">{error}</div>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <div className="modal-actions">
-            <button type="button" onClick={handleClose} disabled={loading}>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" onClick={handleClose} disabled={loading} />}>
               取消
-            </button>
-            <button type="submit" className="primary" disabled={loading}>
+            </DialogClose>
+            <Button type="submit" disabled={loading}>
               {loading ? "更新中..." : "更新 Token"}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

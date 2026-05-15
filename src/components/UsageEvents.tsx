@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { ChevronDown, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { UsageEvent } from '../types';
 import { getUsageEvents } from '../api';
 
@@ -18,7 +21,6 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [total, setTotal] = useState(0);
 
-  // 计算时间戳范围
   const getTimeRange = (filter: TimeFilter): { startTime: number; endTime: number } => {
     const now = new Date();
     const endTime = Math.floor(now.getTime() / 1000);
@@ -54,7 +56,6 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
     return { startTime, endTime };
   };
 
-  // 格式化时间戳为可读日期
   const formatTimestamp = (timestamp: number): string => {
     const date = new Date(timestamp * 1000);
     const year = date.getFullYear();
@@ -65,7 +66,6 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
     return `${year}/${month}/${day} ${hours}:${minutes}`;
   };
 
-  // 加载使用事件
   const loadEvents = async () => {
     if (!accountId) return;
 
@@ -73,7 +73,6 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
     try {
       const { startTime, endTime } = getTimeRange(timeFilter);
       const response = await getUsageEvents(accountId, startTime, endTime, 1, 20);
-
       setEvents(response.user_usage_group_by_sessions || []);
       setTotal(response.total || 0);
     } catch (error) {
@@ -107,110 +106,98 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
     return `${start} - ${end}`;
   };
 
+  const filters: { key: TimeFilter; label: string }[] = [
+    { key: 'today', label: 'Today' },
+    { key: '7days', label: '7 days' },
+    { key: '30days', label: '30 days' },
+  ];
+
   return (
-    <div className="usage-events">
-      <div className="usage-events-header">
-        <h2>账号使用情况</h2>
-        <div className="usage-events-filters">
-          <div className="time-filter-buttons">
-            <button
-              className={`filter-btn ${timeFilter === 'today' ? 'active' : ''}`}
-              onClick={() => handleTimeFilterChange('today')}
-            >
-              Today
-            </button>
-            <button
-              className={`filter-btn ${timeFilter === '7days' ? 'active' : ''}`}
-              onClick={() => handleTimeFilterChange('7days')}
-            >
-              7 days
-            </button>
-            <button
-              className={`filter-btn ${timeFilter === '30days' ? 'active' : ''}`}
-              onClick={() => handleTimeFilterChange('30days')}
-            >
-              30 days
-            </button>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold">账号使用情况</h2>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border p-0.5">
+            {filters.map((f) => (
+              <button
+                key={f.key}
+                className={cn(
+                  "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                  timeFilter === f.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={() => handleTimeFilterChange(f.key)}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
-          <button
-            className="date-range-btn"
-            onClick={() => setShowDatePicker(!showDatePicker)}
-          >
+          <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setShowDatePicker(!showDatePicker)}>
             <span>{formatDateRange()}</span>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
+            <ChevronDown className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
 
       {showDatePicker && (
-        <div className="date-picker-panel">
-          <div className="date-inputs">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              placeholder="开始日期"
-            />
-            <span>-</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              placeholder="结束日期"
-            />
-          </div>
-          <button
-            className="apply-btn"
+        <div className="flex items-center gap-2 rounded-lg border bg-card p-3">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="rounded-md border bg-background px-2 py-1 text-sm"
+          />
+          <span className="text-muted-foreground">-</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="rounded-md border bg-background px-2 py-1 text-sm"
+          />
+          <Button
+            size="sm"
             onClick={() => {
               setTimeFilter('custom');
               setShowDatePicker(false);
             }}
           >
             应用
-          </button>
+          </Button>
         </div>
       )}
 
-      <div className="usage-events-table-container">
+      <div className="overflow-x-auto rounded-lg border">
         {loading ? (
-          <div className="loading-state">加载中...</div>
+          <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">加载中...</div>
         ) : events.length === 0 ? (
-          <div className="empty-state">
-            <p>暂无使用记录</p>
-          </div>
+          <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">暂无使用记录</div>
         ) : (
-          <table className="usage-events-table">
+          <table className="w-full text-sm">
             <thead>
-              <tr>
-                <th>Time</th>
-                <th>Mode</th>
-                <th>Model</th>
-                <th>
-                  Bill (USD)
-                  <span className="info-icon" title="费用信息">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                      <path d="M7 10V7M7 4h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
+              <tr className="border-b bg-muted/50 text-left text-xs font-medium text-muted-foreground">
+                <th className="px-4 py-2.5">Time</th>
+                <th className="px-4 py-2.5">Mode</th>
+                <th className="px-4 py-2.5">Model</th>
+                <th className="px-4 py-2.5">
+                  <span className="inline-flex items-center gap-1">
+                    Bill (USD)
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
                   </span>
                 </th>
-                <th>Request Cost</th>
-                <th>Tokens</th>
+                <th className="px-4 py-2.5">Request Cost</th>
+                <th className="px-4 py-2.5">Tokens</th>
               </tr>
             </thead>
             <tbody>
               {events.map((event) => (
-                <tr key={event.session_id}>
-                  <td>{formatTimestamp(event.usage_time)}</td>
-                  <td>{event.mode || '-'}</td>
-                  <td>{event.model_name}</td>
-                  <td>{event.cost_money_float > 0 ? `$${event.cost_money_float.toFixed(4)}` : 'N/A'}</td>
-                  <td>{event.amount_float}</td>
-                  <td>
+                <tr key={event.session_id} className="border-b last:border-0">
+                  <td className="px-4 py-2.5">{formatTimestamp(event.usage_time)}</td>
+                  <td className="px-4 py-2.5">{event.mode || '-'}</td>
+                  <td className="px-4 py-2.5">{event.model_name}</td>
+                  <td className="px-4 py-2.5">{event.cost_money_float > 0 ? `$${event.cost_money_float.toFixed(4)}` : 'N/A'}</td>
+                  <td className="px-4 py-2.5">{event.amount_float}</td>
+                  <td className="px-4 py-2.5">
                     {event.extra_info.input_token + event.extra_info.output_token}
-                    <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '4px' }}>
+                    <span className="ml-1 text-xs text-muted-foreground">
                       ({event.extra_info.input_token}↑ {event.extra_info.output_token}↓)
                     </span>
                   </td>
@@ -220,10 +207,9 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
           </table>
         )}
       </div>
+
       {total > 0 && (
-        <div style={{ marginTop: '12px', fontSize: '14px', color: '#64748b', textAlign: 'right' }}>
-          共 {total} 条记录
-        </div>
+        <div className="text-right text-sm text-muted-foreground">共 {total} 条记录</div>
       )}
     </div>
   );

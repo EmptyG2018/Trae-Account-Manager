@@ -1,5 +1,16 @@
 import { useState, useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
+import { Box, Globe, Pencil } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import * as api from "../api";
 
 interface AddAccountModalProps {
@@ -20,7 +31,6 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
   const [error, setError] = useState("");
   const [browserLoginStarted, setBrowserLoginStarted] = useState(false);
 
-  // 监听浏览器登录事件
   useEffect(() => {
     const unlistenSuccess = listen<string>("login-success", (event) => {
       onToast?.("success", `浏览器登录成功: ${event.payload}`);
@@ -45,32 +55,21 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
     };
   }, []);
 
-  if (!isOpen) return null;
-
-  // 从输入中提取 Token（优化：增强验证和清理）
   const extractToken = (input: string): string | null => {
-    // 清理输入：移除首尾空白和潜在的危险字符
     const trimmed = input.trim().replace(/[\r\n\t]/g, '');
 
-    // 情况1: 直接是 JWT Token (以 eyJ 开头)
     if (trimmed.startsWith("eyJ")) {
-      // 验证 JWT 格式：必须有三个部分，用点分隔
       const parts = trimmed.split('.');
       if (parts.length === 3 && parts.every(part => /^[A-Za-z0-9_-]+$/.test(part))) {
         return trimmed;
       }
     }
 
-    // 情况2: 是 JSON 响应，尝试解析
     try {
       const json = JSON.parse(trimmed);
-
-      // GetUserToken 接口的响应格式
       if (json.Result?.Token && typeof json.Result.Token === 'string') {
         return validateAndCleanToken(json.Result.Token);
       }
-
-      // 可能是其他格式
       if (json.token && typeof json.token === 'string') {
         return validateAndCleanToken(json.token);
       }
@@ -78,16 +77,14 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
         return validateAndCleanToken(json.Token);
       }
     } catch {
-      // 不是有效的 JSON，继续尝试其他方式
+      // not JSON
     }
 
-    // 情况3: 尝试用正则提取 Token
     const tokenMatch = trimmed.match(/"Token"\s*:\s*"(eyJ[^"]+)"/);
     if (tokenMatch && tokenMatch[1]) {
       return validateAndCleanToken(tokenMatch[1]);
     }
 
-    // 情况4: 尝试提取任何 eyJ 开头的字符串
     const jwtMatch = trimmed.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);
     if (jwtMatch && jwtMatch[0]) {
       return validateAndCleanToken(jwtMatch[0]);
@@ -96,25 +93,14 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
     return null;
   };
 
-  // 验证并清理 Token
   const validateAndCleanToken = (token: string): string | null => {
     const cleaned = token.trim();
     const parts = cleaned.split('.');
-
-    // JWT 必须有三个部分
-    if (parts.length !== 3) {
-      return null;
-    }
-
-    // 每个部分必须是有效的 Base64URL 字符
-    if (!parts.every(part => /^[A-Za-z0-9_-]+$/.test(part))) {
-      return null;
-    }
-
+    if (parts.length !== 3) return null;
+    if (!parts.every(part => /^[A-Za-z0-9_-]+$/.test(part))) return null;
     return cleaned;
   };
 
-  // 读取 Trae IDE 账号
   const handleReadTraeAccount = async () => {
     setLoading(true);
     setError("");
@@ -135,9 +121,7 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
     }
   };
 
-  // 手动添加账号
-  const handleManualSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleManualSubmit = async () => {
     if (!tokenInput.trim()) {
       setError("请输入 Token 或 API 响应");
       return;
@@ -148,14 +132,12 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
 
     try {
       const token = extractToken(tokenInput);
-
       if (!token) {
         setError("无法识别 Token，请确保输入正确的 Token 或 GetUserToken 接口响应");
         setLoading(false);
         return;
       }
 
-      // 清理 Cookies（如果有）
       const cookies = cookiesInput.trim() || undefined;
       await onAdd(token, cookies);
       setTokenInput("");
@@ -168,7 +150,6 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
     }
   };
 
-  // 浏览器登录
   const handleBrowserLogin = async () => {
     setLoading(true);
     setError("");
@@ -194,187 +175,127 @@ export function AddAccountModal({ isOpen, onClose, onAdd, onToast, onAccountAdde
   };
 
   return (
-    <div className="modal-overlay" onClick={handleCloseInternal}>
-      <div className="modal-content add-account-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header-fixed">
-          <h2>添加账号</h2>
-          <button className="modal-close-btn" onClick={handleCloseInternal}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseInternal()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>添加账号</DialogTitle>
+        </DialogHeader>
 
-        <div className="modal-body-scrollable">
-          {/* 添加方式选择 */}
-          <div className="add-mode-tabs">
-            <button
-              className={`mode-tab ${mode === "trae-ide" ? "active" : ""}`}
-              onClick={() => setMode("trae-ide")}
-              disabled={loading}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              </svg>
+        <Tabs value={mode} onValueChange={(v) => setMode(v as AddMode)}>
+          <TabsList className="w-full">
+            <TabsTrigger value="trae-ide" className="flex-1" disabled={loading}>
+              <Box className="mr-1.5 h-4 w-4" />
               从 Trae IDE 读取
-            </button>
-            <button
-              className={`mode-tab ${mode === "browser" ? "active" : ""}`}
-              onClick={() => setMode("browser")}
-              disabled={loading}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
+            </TabsTrigger>
+            <TabsTrigger value="browser" className="flex-1" disabled={loading}>
+              <Globe className="mr-1.5 h-4 w-4" />
               浏览器登录
-            </button>
-            <button
-              className={`mode-tab ${mode === "manual" ? "active" : ""}`}
-              onClick={() => setMode("manual")}
-              disabled={loading}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-              手动输入 Token
-            </button>
-          </div>
+            </TabsTrigger>
+            <TabsTrigger value="manual" className="flex-1" disabled={loading}>
+              <Pencil className="mr-1.5 h-4 w-4" />
+              手动输入
+            </TabsTrigger>
+          </TabsList>
 
-          {mode === "trae-ide" ? (
-            /* Trae IDE 读取模式 */
-            <div className="trae-ide-mode">
-              <div className="mode-description-simple">
-                <div className="mode-icon">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                    <line x1="12" y1="22.08" x2="12" y2="12"/>
-                  </svg>
-                </div>
-                <h3>自动读取本地 Trae IDE 账号</h3>
-                <p>系统将自动读取本地 Trae IDE 客户端当前登录的账号信息</p>
-              </div>
-
-              {error && <div className="error-message">{error}</div>}
+          <TabsContent value="trae-ide" className="space-y-4 pt-2">
+            <div className="flex flex-col items-center gap-3 py-6 text-center">
+              <Box className="h-12 w-12 text-muted-foreground" />
+              <h3 className="text-base font-medium">自动读取本地 Trae IDE 账号</h3>
+              <p className="text-sm text-muted-foreground">
+                系统将自动读取本地 Trae IDE 客户端当前登录的账号信息
+              </p>
             </div>
-          ) : mode === "browser" ? (
-            /* 浏览器登录模式 */
-            <div className="trae-ide-mode">
-              <div className="mode-description-simple">
-                <div className="mode-icon">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                  </svg>
-                </div>
-                <h3>浏览器授权登录</h3>
-                <p>将打开一个登录窗口，在其中登录 trae.ai 账号，系统将自动提取 Cookies 并添加账号</p>
-                {browserLoginStarted && (
-                  <p style={{ color: "var(--color-warning, #f0a030)", marginTop: "8px" }}>
-                    登录窗口已打开，请在窗口中完成登录...
-                  </p>
-                )}
-              </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </TabsContent>
 
-              {error && <div className="error-message">{error}</div>}
+          <TabsContent value="browser" className="space-y-4 pt-2">
+            <div className="flex flex-col items-center gap-3 py-6 text-center">
+              <Globe className="h-12 w-12 text-muted-foreground" />
+              <h3 className="text-base font-medium">浏览器授权登录</h3>
+              <p className="text-sm text-muted-foreground">
+                将打开一个登录窗口，在其中登录 trae.ai 账号，系统将自动提取 Cookies 并添加账号
+              </p>
+              {browserLoginStarted && (
+                <p className="text-sm text-yellow-600">
+                  登录窗口已打开，请在窗口中完成登录...
+                </p>
+              )}
             </div>
-          ) : (
-            /* 手动输入模式 */
-            <div className="manual-mode">
-              {/* Token 输入 */}
-              <div className="form-section">
-                <label className="form-label">
-                  Token <span className="required">*</span>
-                </label>
-                <textarea
-                  value={tokenInput}
-                  onChange={(e) => setTokenInput(e.target.value)}
-                  placeholder='粘贴 Token 或 GetUserToken 接口响应...'
-                  rows={4}
-                  disabled={loading}
-                />
-                <div className="form-help">
-                  <details>
-                    <summary>如何获取 Token？</summary>
-                    <ol>
-                      <li>打开 <a href="https://www.trae.ai/account-setting#usage" target="_blank" rel="noopener noreferrer">trae.ai 账号设置页面</a> 并登录</li>
-                      <li>按 <kbd>F12</kbd> 打开开发者工具，切换到 <strong>Network</strong> 标签</li>
-                      <li>刷新页面，在请求列表中找到 <code>GetUserToken</code></li>
-                      <li>点击该请求，在右侧 <strong>Response</strong> 标签中复制整个响应内容</li>
-                    </ol>
-                  </details>
-                </div>
-              </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </TabsContent>
 
-              {/* Cookies 输入（可选） */}
-              <div className="form-section">
-                <label className="form-label">
-                  Cookies <span className="optional">（可选）</span>
-                </label>
-                <textarea
-                  value={cookiesInput}
-                  onChange={(e) => setCookiesInput(e.target.value)}
-                  placeholder='粘贴 Cookie 值（可选）...'
-                  rows={3}
-                  disabled={loading}
-                />
-                <div className="form-help">
-                  <details>
-                    <summary>如何获取 Cookies？</summary>
-                    <ol>
-                      <li>在上面获取 Token 的同一个页面</li>
-                      <li>在 <strong>Network</strong> 标签中点击任意请求</li>
-                      <li>在右侧 <strong>Headers</strong> 中找到 <code>Cookie</code> 字段</li>
-                      <li>复制整个 Cookie 值（很长的一串）</li>
-                    </ol>
-                  </details>
-                </div>
-              </div>
-
-              {error && <div className="error-message">{error}</div>}
+          <TabsContent value="manual" className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Token <span className="text-destructive">*</span>
+              </label>
+              <Textarea
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="粘贴 Token 或 GetUserToken 接口响应..."
+                rows={4}
+                disabled={loading}
+              />
+              <details className="text-sm">
+                <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                  如何获取 Token？
+                </summary>
+                <ol className="mt-2 space-y-1 pl-4 text-muted-foreground [&_li]:list-decimal">
+                  <li>打开 <a href="https://www.trae.ai/account-setting#usage" target="_blank" rel="noopener noreferrer" className="text-primary underline">trae.ai 账号设置页面</a> 并登录</li>
+                  <li>按 <kbd className="rounded bg-muted px-1 py-0.5 text-xs">F12</kbd> 打开开发者工具，切换到 <strong>Network</strong> 标签</li>
+                  <li>刷新页面，在请求列表中找到 <code className="rounded bg-muted px-1 text-xs">GetUserToken</code></li>
+                  <li>点击该请求，在右侧 <strong>Response</strong> 标签中复制整个响应内容</li>
+                </ol>
+              </details>
             </div>
-          )}
-        </div>
 
-        <div className="modal-actions-fixed">
-          <button type="button" onClick={handleCloseInternal} disabled={loading}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Cookies <span className="text-muted-foreground">（可选）</span>
+              </label>
+              <Textarea
+                value={cookiesInput}
+                onChange={(e) => setCookiesInput(e.target.value)}
+                placeholder="粘贴 Cookie 值（可选）..."
+                rows={3}
+                disabled={loading}
+              />
+              <details className="text-sm">
+                <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                  如何获取 Cookies？
+                </summary>
+                <ol className="mt-2 space-y-1 pl-4 text-muted-foreground [&_li]:list-decimal">
+                  <li>在上面获取 Token 的同一个页面</li>
+                  <li>在 <strong>Network</strong> 标签中点击任意请求</li>
+                  <li>在右侧 <strong>Headers</strong> 中找到 <code className="rounded bg-muted px-1 text-xs">Cookie</code> 字段</li>
+                  <li>复制整个 Cookie 值</li>
+                </ol>
+              </details>
+            </div>
+
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </TabsContent>
+        </Tabs>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleCloseInternal} disabled={loading}>
             取消
-          </button>
+          </Button>
           {mode === "trae-ide" ? (
-            <button
-              type="button"
-              className="primary"
-              onClick={handleReadTraeAccount}
-              disabled={loading}
-            >
+            <Button onClick={handleReadTraeAccount} disabled={loading}>
               {loading ? "读取中..." : "读取本地账号"}
-            </button>
+            </Button>
           ) : mode === "browser" ? (
-            <button
-              type="button"
-              className="primary"
-              onClick={handleBrowserLogin}
-              disabled={loading || browserLoginStarted}
-            >
+            <Button onClick={handleBrowserLogin} disabled={loading || browserLoginStarted}>
               {browserLoginStarted ? "等待登录中..." : loading ? "打开中..." : "打开登录窗口"}
-            </button>
+            </Button>
           ) : (
-            <button
-              type="button"
-              className="primary"
-              onClick={() => handleManualSubmit()}
-              disabled={loading}
-            >
+            <Button onClick={handleManualSubmit} disabled={loading}>
               {loading ? "添加中..." : "添加账号"}
-            </button>
+            </Button>
           )}
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

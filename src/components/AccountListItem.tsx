@@ -1,3 +1,6 @@
+import { MoreVertical } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { UsageSummary } from "../types";
 
 interface AccountListItemProps {
@@ -16,6 +19,13 @@ interface AccountListItemProps {
   onContextMenu: (e: React.MouseEvent, id: string) => void;
 }
 
+const statusConfig = {
+  normal: { label: "正常", dot: "bg-green-500" },
+  expiring: { label: "即将过期", dot: "bg-yellow-500" },
+  expired: { label: "过期", dot: "bg-red-500" },
+  unknown: { label: "未知", dot: "bg-gray-400" },
+};
+
 export function AccountListItem({ account, usage, selected, onSelect, onContextMenu }: AccountListItemProps) {
   const totalUsed = usage ? usage.fast_request_used + usage.extra_fast_request_used : 0;
   const totalLimit = usage ? usage.fast_request_limit + usage.extra_fast_request_limit : 0;
@@ -23,9 +33,9 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
   const usagePercent = totalLimit > 0 ? Math.round((totalUsed / totalLimit) * 100) : 0;
 
   const getUsageColor = () => {
-    if (usagePercent >= 80) return "var(--danger)";
-    if (usagePercent >= 50) return "var(--warning)";
-    return "var(--success)";
+    if (usagePercent >= 80) return "bg-red-500";
+    if (usagePercent >= 50) return "bg-yellow-500";
+    return "bg-green-500";
   };
 
   const formatCreatedDate = (timestamp: number) => {
@@ -34,7 +44,6 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
     if (diffDays === 0) return "今天";
     if (diffDays === 1) return "昨天";
     if (diffDays < 7) return `${diffDays}天前`;
@@ -49,7 +58,7 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
     if (isNaN(expiry)) return "unknown";
     const now = Date.now();
     if (expiry < now) return "expired";
-    if (expiry - now < 3600000) return "expiring"; // < 1小时
+    if (expiry - now < 3600000) return "expiring";
     return "normal";
   };
 
@@ -57,81 +66,71 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
 
   return (
     <div
-      className={`account-list-item ${selected ? "selected" : ""}`}
+      className={cn(
+        "grid cursor-pointer items-center gap-4 rounded-lg border-b px-4 py-3 transition-colors hover:bg-accent/50",
+        "grid-cols-[auto_auto_1fr_auto_auto_auto_auto]",
+        selected && "bg-primary/5"
+      )}
       onClick={() => onSelect(account.id)}
       onContextMenu={(e) => onContextMenu(e, account.id)}
     >
-      <div className="list-item-checkbox" onClick={(e) => e.stopPropagation()}>
-        <input
-          type="checkbox"
-          checked={selected}
-          onChange={() => onSelect(account.id)}
-        />
-      </div>
+      <input
+        type="checkbox"
+        checked={selected}
+        onChange={() => onSelect(account.id)}
+        onClick={(e) => e.stopPropagation()}
+      />
 
-      <div className="list-item-avatar">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
         {account.avatar_url ? (
-          <img src={account.avatar_url} alt={account.name} />
+          <img src={account.avatar_url} alt={account.name} className="h-full w-full rounded-full object-cover" />
         ) : (
-          <div className="avatar-placeholder">
-            {(account.email || account.name).charAt(0).toUpperCase()}
-          </div>
+          (account.email || account.name).charAt(0).toUpperCase()
         )}
       </div>
 
-      <div className="list-item-info">
-        <span className="list-item-email">{account.email || account.name}</span>
-        <span className="list-item-id">Trae 账号</span>
+      <div className="min-w-0">
+        <div className="truncate text-sm font-medium">{account.email || account.name}</div>
+        <div className="text-xs text-muted-foreground">Trae 账号</div>
       </div>
 
-      <div className="list-item-plan">
-        <span className="plan-badge">{usage?.plan_type || account.plan_type || "Free"}</span>
+      <div className="flex items-center gap-1.5">
+        <Badge variant="secondary" className="text-xs">{usage?.plan_type || account.plan_type || "Free"}</Badge>
         {usage && usage.extra_fast_request_limit > 0 && (
-          <span className="extra-badge">礼包</span>
+          <Badge variant="outline" className="text-xs">礼包</Badge>
         )}
       </div>
 
-      <div className="list-item-usage">
-        <div className="usage-info">
-          <span className="usage-text">
-            <strong>{Math.round(totalUsed)}</strong> / {totalLimit}
-          </span>
-          <span className="usage-left">剩余 {Math.round(totalLeft)}</span>
+      <div className="w-32">
+        <div className="mb-1 flex items-center justify-between text-xs">
+          <span className="text-muted-foreground"><strong className="text-foreground">{Math.round(totalUsed)}</strong> / {totalLimit}</span>
+          <span className="text-muted-foreground">剩余 {Math.round(totalLeft)}</span>
         </div>
-        <div className="usage-bar-mini">
-          <div
-            className="usage-bar-fill-mini"
-            style={{ width: `${Math.min(usagePercent, 100)}%`, background: getUsageColor() }}
-          />
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+          <div className={cn("h-full rounded-full transition-all", getUsageColor())} style={{ width: `${Math.min(usagePercent, 100)}%` }} />
         </div>
       </div>
 
-      <div className="list-item-reset">
-        <span className="reset-label">添加时间</span>
-        <span className="reset-date">{formatCreatedDate(account.created_at)}</span>
+      <div className="text-center text-xs text-muted-foreground">
+        <div>添加时间</div>
+        <div className="font-medium text-foreground">{formatCreatedDate(account.created_at)}</div>
       </div>
 
-      <div className="list-item-status">
-        <span className={`status-dot ${tokenStatus === "expired" ? "expired" : tokenStatus === "expiring" ? "expiring" : "normal"}`}></span>
-        <span>{tokenStatus === "expired" ? "过期" : tokenStatus === "expiring" ? "即将过期" : "正常"}</span>
+      <div className="flex items-center gap-1.5 text-xs">
+        <span className={cn("h-2 w-2 rounded-full", statusConfig[tokenStatus].dot)} />
+        <span className="text-muted-foreground">{statusConfig[tokenStatus].label}</span>
       </div>
 
-      <div className="list-item-actions">
-        <button
-          className="action-btn"
-          title="更多操作"
-          onClick={(e) => {
-            e.stopPropagation();
-            onContextMenu(e, account.id);
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="12" cy="5" r="2"/>
-            <circle cx="12" cy="12" r="2"/>
-            <circle cx="12" cy="19" r="2"/>
-          </svg>
-        </button>
-      </div>
+      <button
+        className="rounded-md p-1 transition-colors hover:bg-accent"
+        title="更多操作"
+        onClick={(e) => {
+          e.stopPropagation();
+          onContextMenu(e, account.id);
+        }}
+      >
+        <MoreVertical className="h-4 w-4 text-muted-foreground" />
+      </button>
     </div>
   );
 }

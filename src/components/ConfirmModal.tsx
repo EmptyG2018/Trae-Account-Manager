@@ -1,3 +1,15 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Trash2, AlertTriangle, Info } from "lucide-react";
+
 interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
@@ -9,6 +21,18 @@ interface ConfirmModalProps {
   onCancel: () => void;
 }
 
+const iconMap = {
+  danger: Trash2,
+  warning: AlertTriangle,
+  info: Info,
+};
+
+const iconColorMap = {
+  danger: "text-destructive",
+  warning: "text-yellow-500",
+  info: "text-blue-500",
+};
+
 export function ConfirmModal({
   isOpen,
   title,
@@ -19,29 +43,30 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
-  if (!isOpen) return null;
-
-  const icons = {
-    danger: "🗑️",
-    warning: "⚠️",
-    info: "ℹ️",
-  };
+  const Icon = iconMap[type];
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className={`confirm-modal confirm-${type}`} onClick={(e) => e.stopPropagation()}>
-        <div className="confirm-icon">{icons[type]}</div>
-        <h3 className="confirm-title">{title}</h3>
-        <p className="confirm-message">{message}</p>
-        <div className="confirm-actions">
-          <button className="confirm-btn cancel" onClick={onCancel}>
-            {cancelText}
-          </button>
-          <button className={`confirm-btn ${type}`} onClick={onConfirm}>
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <div className="flex items-center gap-3">
+            <Icon className={`h-5 w-5 ${iconColorMap[type]}`} />
+            <AlertDialogTitle>{title}</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription className="pl-8">
+            {message}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onCancel}>{cancelText}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className={type === "danger" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+          >
             {confirmText}
-          </button>
-        </div>
-      </div>
-    </div>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

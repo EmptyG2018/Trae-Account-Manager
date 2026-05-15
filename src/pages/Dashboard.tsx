@@ -1,5 +1,7 @@
 import { memo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { Layers, Activity, Check, Clock, Users } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import type { UsageSummary } from "../types";
 import { UsageEvents } from "../components/UsageEvents";
 
@@ -13,23 +15,22 @@ interface DashboardProps {
   }>;
 }
 
+const statCards = [
+  { key: 'totalLimit', label: '总配额', sublabel: 'Fast Requests', icon: Layers, color: 'bg-violet-500' },
+  { key: 'totalUsed', label: '已使用', sublabel: 'usagePercent', icon: Activity, color: 'bg-sky-500' },
+  { key: 'totalLeft', label: '剩余可用', sublabel: 'remainingPercent', icon: Check, color: 'bg-emerald-500' },
+  { key: 'avgUsed', label: '平均使用', sublabel: '每账号', icon: Clock, color: 'bg-orange-500' },
+];
+
 export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
   const totalAccounts = accounts.length;
 
-  // 合并所有统计计算为一次遍历，提升性能
   const stats = accounts.reduce((acc, a) => {
     if (a.usage) {
-      // 统计活跃账号
-      if (a.usage.fast_request_left > 0) {
-        acc.activeAccounts++;
-      }
-
-      // 累加使用量、配额和剩余量
+      if (a.usage.fast_request_left > 0) acc.activeAccounts++;
       acc.totalUsed += a.usage.fast_request_used + a.usage.extra_fast_request_used;
       acc.totalLimit += a.usage.fast_request_limit + a.usage.extra_fast_request_limit;
       acc.totalLeft += a.usage.fast_request_left + a.usage.extra_fast_request_left;
-
-      // 统计套餐分布
       const planType = a.usage.plan_type || 'Free';
       acc.quotaMap.set(planType, (acc.quotaMap.get(planType) || 0) + 1);
     }
@@ -50,100 +51,72 @@ export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
     { name: '剩余', value: totalLeft, color: '#e5e7eb' },
   ];
 
-  // 将 Map 转换为数组
   const quotaData = Array.from(quotaMap.entries()).map(([name, value]) => ({ name, value }));
-
   const COLORS = ['#0ea5e9', '#06b6d4', '#22d3ee', '#f97316'];
 
+  const statValues: Record<string, number> = {
+    totalLimit,
+    totalUsed: Math.round(totalUsed),
+    totalLeft: Math.round(totalLeft),
+    avgUsed: totalAccounts > 0 ? Math.round(totalUsed / totalAccounts) : 0,
+  };
+
+  const statSublabels: Record<string, string> = {
+    totalLimit: 'Fast Requests',
+    totalUsed: `${usagePercent}% 使用率`,
+    totalLeft: `${100 - usagePercent}% 剩余`,
+    avgUsed: '每账号',
+  };
+
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
-        <div className="welcome-section">
-          <h1>欢迎回来 👋</h1>
-          <p>这是您的账号使用概览</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">欢迎回来</h1>
+          <p className="text-sm text-muted-foreground">这是您的账号使用概览</p>
         </div>
-        <div className="header-stats">
-          <div className="quick-stat">
-            <span className="quick-stat-value">{totalAccounts}</span>
-            <span className="quick-stat-label">账号总数</span>
+        <div className="flex gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold">{totalAccounts}</div>
+            <div className="text-xs text-muted-foreground">账号总数</div>
           </div>
-          <div className="quick-stat">
-            <span className="quick-stat-value success">{activeAccounts}</span>
-            <span className="quick-stat-label">可用账号</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="stats-row">
-        <div className="stat-card gradient-purple">
-          <div className="stat-card-content">
-            <div className="stat-card-info">
-              <span className="stat-card-label">总配额</span>
-              <span className="stat-card-value">{totalLimit}</span>
-              <span className="stat-card-change">Fast Requests</span>
-            </div>
-            <div className="stat-card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card gradient-blue">
-          <div className="stat-card-content">
-            <div className="stat-card-info">
-              <span className="stat-card-label">已使用</span>
-              <span className="stat-card-value">{Math.round(totalUsed)}</span>
-              <span className="stat-card-change">{usagePercent}% 使用率</span>
-            </div>
-            <div className="stat-card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card gradient-green">
-          <div className="stat-card-content">
-            <div className="stat-card-info">
-              <span className="stat-card-label">剩余可用</span>
-              <span className="stat-card-value">{Math.round(totalLeft)}</span>
-              <span className="stat-card-change">{100 - usagePercent}% 剩余</span>
-            </div>
-            <div className="stat-card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card gradient-orange">
-          <div className="stat-card-content">
-            <div className="stat-card-info">
-              <span className="stat-card-label">平均使用</span>
-              <span className="stat-card-value">{totalAccounts > 0 ? Math.round(totalUsed / totalAccounts) : 0}</span>
-              <span className="stat-card-change">每账号</span>
-            </div>
-            <div className="stat-card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 6v6l4 2"/>
-              </svg>
-            </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">{activeAccounts}</div>
+            <div className="text-xs text-muted-foreground">可用账号</div>
           </div>
         </div>
       </div>
 
-      <div className="charts-grid-2col">
-        <div className="chart-card">
-          <div className="chart-header">
-            <h3>使用量分布</h3>
-            <span className="chart-badge">{usagePercent}%</span>
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div key={card.key} className="rounded-xl border bg-card p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-muted-foreground">{card.label}</div>
+                  <div className="mt-1 text-2xl font-bold">{statValues[card.key]}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{statSublabels[card.key]}</div>
+                </div>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${card.color}`}>
+                  <Icon className="h-5 w-5 text-white" />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Charts */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-xl border bg-card p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold">使用量分布</h3>
+            <Badge variant="secondary">{usagePercent}%</Badge>
           </div>
-          <div className="chart-body pie-chart-container">
+          <div className="relative">
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
@@ -162,50 +135,48 @@ export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-            <div className="pie-center-text">
-              <span className="pie-value">{Math.round(totalLeft)}</span>
-              <span className="pie-label">剩余</span>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-2xl font-bold">{Math.round(totalLeft)}</span>
+              <span className="text-xs text-muted-foreground">剩余</span>
             </div>
           </div>
-          <div className="chart-legend">
-            <div className="legend-item">
-              <span className="legend-dot" style={{ background: '#0ea5e9' }}></span>
-              <span>已使用 ({Math.round(totalUsed)})</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-dot" style={{ background: '#e5e7eb' }}></span>
-              <span>剩余 ({Math.round(totalLeft)})</span>
-            </div>
+          <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
+              已使用 ({Math.round(totalUsed)})
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-gray-200" />
+              剩余 ({Math.round(totalLeft)})
+            </span>
           </div>
         </div>
 
-        <div className="chart-card">
-          <div className="chart-header">
-            <h3>套餐分布</h3>
-          </div>
-          <div className="chart-body">
-            {quotaData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie
-                    data={quotaData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}
-                  >
-                    {quotaData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="chart-empty">暂无数据</div>
-            )}
-          </div>
+        <div className="rounded-xl border bg-card p-4">
+          <h3 className="mb-3 text-sm font-semibold">套餐分布</h3>
+          {quotaData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={quotaData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}
+                >
+                  {quotaData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">
+              暂无数据
+            </div>
+          )}
         </div>
       </div>
 
@@ -213,37 +184,34 @@ export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
         <>
           <UsageEvents accountId={accounts.find(a => a.is_current)?.id || accounts[0]?.id || ''} />
 
-          <div className="accounts-preview">
-            <div className="preview-header">
-              <h3>账号概览</h3>
-              <span className="preview-count">{accounts.length} 个账号</span>
+          <div className="rounded-xl border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold">账号概览</h3>
+              <Badge variant="secondary">{accounts.length} 个账号</Badge>
             </div>
-            <div className="preview-list">
+            <div className="space-y-2">
               {accounts.slice(0, 4).map((account) => {
                 const used = account.usage ? account.usage.fast_request_used + account.usage.extra_fast_request_used : 0;
                 const limit = account.usage ? account.usage.fast_request_limit + account.usage.extra_fast_request_limit : 0;
                 const percent = limit > 0 ? Math.round((used / limit) * 100) : 0;
 
                 return (
-                  <div key={account.id} className="preview-item">
-                    <div className="preview-avatar">
+                  <div key={account.id} className="flex items-center gap-3 rounded-lg p-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
                       {(account.email || account.name || '?').charAt(0).toUpperCase()}
                     </div>
-                    <div className="preview-info">
-                      <span className="preview-name">{account.email || account.name || 'Unknown'}</span>
-                      <span className="preview-plan">{account.usage?.plan_type || 'Free'}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium">{account.email || account.name || 'Unknown'}</div>
+                      <div className="text-xs text-muted-foreground">{account.usage?.plan_type || 'Free'}</div>
                     </div>
-                    <div className="preview-usage">
-                      <div className="preview-progress">
+                    <div className="flex w-32 items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
                         <div
-                          className="preview-progress-fill"
-                          style={{
-                            width: `${percent}%`,
-                            background: percent > 80 ? '#ef4444' : percent > 50 ? '#f59e0b' : '#10b981'
-                          }}
+                          className={`h-full rounded-full ${percent > 80 ? 'bg-red-500' : percent > 50 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                          style={{ width: `${percent}%` }}
                         />
                       </div>
-                      <span className="preview-percent">{percent}%</span>
+                      <span className="w-8 text-right text-xs text-muted-foreground">{percent}%</span>
                     </div>
                   </div>
                 );
@@ -254,10 +222,10 @@ export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
       )}
 
       {accounts.length === 0 && (
-        <div className="dashboard-empty">
-          <div className="empty-icon">📊</div>
-          <h3>暂无账号数据</h3>
-          <p>请先在"账号管理"中添加账号</p>
+        <div className="flex flex-col items-center gap-2 py-16 text-center">
+          <Users className="h-12 w-12 text-muted-foreground/50" />
+          <h3 className="text-lg font-medium">暂无账号数据</h3>
+          <p className="text-sm text-muted-foreground">请先在"账号管理"中添加账号</p>
         </div>
       )}
     </div>

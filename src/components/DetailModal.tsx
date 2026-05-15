@@ -1,4 +1,14 @@
 import { useState } from "react";
+import { Copy, Check } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import type { UsageSummary } from "../types";
 
 interface DetailModalProps {
@@ -19,8 +29,6 @@ interface DetailModalProps {
 export function DetailModal({ isOpen, onClose, account, usage }: DetailModalProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  if (!isOpen || !account) return null;
-
   const formatDate = (timestamp: number) => {
     if (!timestamp) return "-";
     return new Date(timestamp * 1000).toLocaleString("zh-CN");
@@ -40,161 +48,112 @@ export function DetailModal({ isOpen, onClose, account, usage }: DetailModalProp
     }
   };
 
+  if (!account) return null;
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content detail-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header-fixed">
-          <h2>账号详情</h2>
-          <button className="modal-close-btn" onClick={onClose}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>账号详情</DialogTitle>
+        </DialogHeader>
 
-        <div className="modal-body-scrollable">
-          <div className="detail-section">
-            <h3>基本信息</h3>
-            <div className="detail-row">
-              <span className="detail-label">用户名</span>
-              <span className="detail-value">{account.name}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">邮箱</span>
-              <span className="detail-value">{account.email || "-"}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">套餐类型</span>
-              <span className="detail-value">{usage?.plan_type || account.plan_type || "Free"}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">重置时间</span>
-              <span className="detail-value">{usage ? formatDate(usage.reset_time) : "-"}</span>
-            </div>
-          </div>
+        <div className="space-y-4">
+          <Section title="基本信息">
+            <Row label="用户名" value={account.name} />
+            <Row label="邮箱" value={account.email || "-"} />
+            <Row label="套餐类型" value={usage?.plan_type || account.plan_type || "Free"} />
+            <Row label="重置时间" value={usage ? formatDate(usage.reset_time) : "-"} />
+          </Section>
 
-          {/* Token 信息 */}
           {account.jwt_token && (
-            <div className="detail-section">
-              <h3>Token</h3>
-              <div className="detail-row-copy-inline">
-                <code className="detail-code-inline">{account.jwt_token}</code>
-                <button
-                  className="copy-btn-icon"
-                  onClick={() => handleCopy(account.jwt_token!, "token")}
-                  title="复制 Token"
-                >
-                  {copiedField === "token" ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                      <path d="M20 6L9 17l-5-5"/>
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
+            <Section title="Token">
+              <CopyRow
+                text={account.jwt_token}
+                field="token"
+                copiedField={copiedField}
+                onCopy={handleCopy}
+              />
+            </Section>
           )}
 
-          {/* Cookies 信息 */}
           {account.cookies && (
-            <div className="detail-section">
-              <h3>Cookies</h3>
-              <div className="detail-row-copy-inline">
-                <code className="detail-code-inline">{account.cookies}</code>
-                <button
-                  className="copy-btn-icon"
-                  onClick={() => handleCopy(account.cookies!, "cookies")}
-                  title="复制 Cookies"
-                >
-                  {copiedField === "cookies" ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                      <path d="M20 6L9 17l-5-5"/>
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
+            <Section title="Cookies">
+              <CopyRow
+                text={account.cookies}
+                field="cookies"
+                copiedField={copiedField}
+                onCopy={handleCopy}
+              />
+            </Section>
           )}
 
           {usage && (
             <>
-              <div className="detail-section">
-                <h3>Fast Request</h3>
-                <div className="detail-row">
-                  <span className="detail-label">已使用</span>
-                  <span className="detail-value">{formatNumber(usage.fast_request_used)}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">总配额</span>
-                  <span className="detail-value">{formatNumber(usage.fast_request_limit)}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">剩余</span>
-                  <span className="detail-value success">{formatNumber(usage.fast_request_left)}</span>
-                </div>
-              </div>
+              <Section title="Fast Request">
+                <Row label="已使用" value={formatNumber(usage.fast_request_used)} />
+                <Row label="总配额" value={formatNumber(usage.fast_request_limit)} />
+                <Row label="剩余" value={formatNumber(usage.fast_request_left)} highlight />
+              </Section>
 
               {usage.extra_fast_request_limit > 0 && (
-                <div className="detail-section">
-                  <h3>额外礼包 {usage.extra_package_name && `(${usage.extra_package_name})`}</h3>
-                  <div className="detail-row">
-                    <span className="detail-label">已使用</span>
-                    <span className="detail-value">{formatNumber(usage.extra_fast_request_used)}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">总配额</span>
-                    <span className="detail-value">{formatNumber(usage.extra_fast_request_limit)}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">剩余</span>
-                    <span className="detail-value success">{formatNumber(usage.extra_fast_request_left)}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">过期时间</span>
-                    <span className="detail-value">{formatDate(usage.extra_expire_time)}</span>
-                  </div>
-                </div>
+                <Section title={`额外礼包 ${usage.extra_package_name ? `(${usage.extra_package_name})` : ""}`}>
+                  <Row label="已使用" value={formatNumber(usage.extra_fast_request_used)} />
+                  <Row label="总配额" value={formatNumber(usage.extra_fast_request_limit)} />
+                  <Row label="剩余" value={formatNumber(usage.extra_fast_request_left)} highlight />
+                  <Row label="过期时间" value={formatDate(usage.extra_expire_time)} />
+                </Section>
               )}
 
-              <div className="detail-section">
-                <h3>其他配额</h3>
-                <div className="detail-row">
-                  <span className="detail-label">Slow Request</span>
-                  <span className="detail-value">
-                    {formatNumber(usage.slow_request_used)} / {formatNumber(usage.slow_request_limit)}
-                  </span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Advanced Model</span>
-                  <span className="detail-value">
-                    {formatNumber(usage.advanced_model_used)} / {formatNumber(usage.advanced_model_limit)}
-                  </span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Autocomplete</span>
-                  <span className="detail-value">
-                    {formatNumber(usage.autocomplete_used)} / {formatNumber(usage.autocomplete_limit)}
-                  </span>
-                </div>
-              </div>
+              <Section title="其他配额">
+                <Row label="Slow Request" value={`${formatNumber(usage.slow_request_used)} / ${formatNumber(usage.slow_request_limit)}`} />
+                <Row label="Advanced Model" value={`${formatNumber(usage.advanced_model_used)} / ${formatNumber(usage.advanced_model_limit)}`} />
+                <Row label="Autocomplete" value={`${formatNumber(usage.autocomplete_used)} / ${formatNumber(usage.autocomplete_limit)}`} />
+              </Section>
             </>
           )}
         </div>
 
-        <div className="modal-actions-fixed">
-          <button onClick={onClose}>关闭</button>
-        </div>
-      </div>
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" />}>
+            关闭
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
+      <div className="space-y-1.5">{children}</div>
+    </div>
+  );
+}
+
+function Row({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={highlight ? "font-medium text-green-600" : "font-medium"}>{value}</span>
+    </div>
+  );
+}
+
+function CopyRow({ text, field, copiedField, onCopy }: { text: string; field: string; copiedField: string | null; onCopy: (text: string, field: string) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <code className="flex-1 truncate rounded bg-muted px-2 py-1.5 text-xs">{text}</code>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 shrink-0"
+        onClick={() => onCopy(text, field)}
+        title={copiedField === field ? "已复制" : "复制"}
+      >
+        {copiedField === field ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+      </Button>
     </div>
   );
 }

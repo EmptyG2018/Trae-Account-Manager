@@ -1,3 +1,14 @@
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Info } from "lucide-react";
+
 interface InfoModalProps {
   isOpen: boolean;
   title: string;
@@ -15,54 +26,50 @@ interface InfoModalProps {
 export function InfoModal({
   isOpen,
   title,
-  icon = "ℹ️",
   sections,
   confirmText = "确定",
   onConfirm,
   onCancel,
 }: InfoModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="info-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="info-modal-header">
-          <div className="info-modal-icon">{icon}</div>
-          <h3 className="info-modal-title">{title}</h3>
-          <button className="info-modal-close" onClick={onCancel}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-muted-foreground" />
+            <DialogTitle>{title}</DialogTitle>
+          </div>
+        </DialogHeader>
 
-        <div className="info-modal-body">
+        <div className="space-y-4">
           {sections.map((section, index) => (
-            <div key={index} className="info-section">
-              {section.title && <h4 className="info-section-title">{section.title}</h4>}
+            <div key={index} className="space-y-1.5">
+              {section.title && (
+                <h4 className="text-sm font-medium">{section.title}</h4>
+              )}
               {section.type === "code" ? (
-                <pre className="info-code-block">
+                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs">
                   <code>{section.content}</code>
                 </pre>
               ) : section.type === "list" ? (
-                <div className="info-list" dangerouslySetInnerHTML={{ __html: section.content }} />
+                <div
+                  className="text-sm text-muted-foreground [&_li]:ml-4 [&_li]:list-disc [&_ol]:space-y-1 [&_ul]:space-y-1"
+                  dangerouslySetInnerHTML={{ __html: section.content }}
+                />
               ) : (
-                <p className="info-text">{section.content}</p>
+                <p className="text-sm text-muted-foreground">{section.content}</p>
               )}
             </div>
           ))}
         </div>
 
-        <div className="info-modal-footer">
-          <button className="info-btn cancel" onClick={onCancel}>
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" onClick={onCancel} />}>
             取消
-          </button>
-          <button className="info-btn confirm" onClick={onConfirm}>
-            {confirmText}
-          </button>
-        </div>
-      </div>
-    </div>
+          </DialogClose>
+          <Button onClick={onConfirm}>{confirmText}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

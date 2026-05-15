@@ -1,4 +1,15 @@
 import { useEffect, useRef } from "react";
+import {
+  Eye,
+  RefreshCw,
+  KeyRound,
+  Key,
+  Shuffle,
+  Gift,
+  Trash2,
+  Check,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ContextMenuProps {
   x: number;
@@ -11,7 +22,15 @@ interface ContextMenuProps {
   onSwitchAccount: () => void;
   onClaimGift: () => void;
   onDelete: () => void;
-  isCurrent?: boolean; // 是否是当前使用的账号
+  isCurrent?: boolean;
+}
+
+interface MenuItem {
+  label: string;
+  icon: React.ElementType;
+  onClick?: () => void;
+  danger?: boolean;
+  disabled?: boolean;
 }
 
 export function ContextMenu({
@@ -30,7 +49,6 @@ export function ContextMenu({
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // 调整菜单位置，防止超出屏幕
     if (menuRef.current) {
       const menu = menuRef.current;
       const rect = menu.getBoundingClientRect();
@@ -44,47 +62,54 @@ export function ContextMenu({
     }
   }, [x, y]);
 
+  const items: (MenuItem | "divider")[] = [
+    { label: "查看详情", icon: Eye, onClick: onViewDetail },
+    { label: "刷新数据", icon: RefreshCw, onClick: onRefresh },
+    { label: "更新 Token", icon: KeyRound, onClick: onUpdateToken },
+    { label: "复制 Token", icon: Key, onClick: onCopyToken },
+    {
+      label: isCurrent ? "当前使用中" : "切换账号",
+      icon: isCurrent ? Check : Shuffle,
+      onClick: isCurrent ? undefined : onSwitchAccount,
+      disabled: isCurrent,
+    },
+    { label: "获取礼包", icon: Gift, onClick: onClaimGift },
+    "divider",
+    { label: "删除账号", icon: Trash2, onClick: onDelete, danger: true },
+  ];
+
   return (
     <>
-      <div className="context-menu-overlay" onClick={onClose} />
+      <div className="fixed inset-0 z-[9998]" onClick={onClose} />
       <div
         ref={menuRef}
-        className="context-menu"
+        className="fixed z-[9999] min-w-[160px] overflow-hidden rounded-lg border border-border bg-popover p-1 shadow-lg"
         style={{ left: x, top: y }}
       >
-        <div className="context-menu-item" onClick={onViewDetail}>
-          <span className="icon">👁</span>
-          查看详情
-        </div>
-        <div className="context-menu-item" onClick={onRefresh}>
-          <span className="icon">🔄</span>
-          刷新数据
-        </div>
-        <div className="context-menu-item" onClick={onUpdateToken}>
-          <span className="icon">🔐</span>
-          更新 Token
-        </div>
-        <div className="context-menu-item" onClick={onCopyToken}>
-          <span className="icon">🔑</span>
-          复制 Token
-        </div>
-        <div
-          className={`context-menu-item ${isCurrent ? "disabled" : ""}`}
-          onClick={isCurrent ? undefined : onSwitchAccount}
-          title={isCurrent ? "当前已是此账号" : "切换到此账号"}
-        >
-          <span className="icon">{isCurrent ? "✓" : "🔀"}</span>
-          {isCurrent ? "当前使用中" : "切换账号"}
-        </div>
-        <div className="context-menu-item" onClick={onClaimGift}>
-          <span className="icon">🎁</span>
-          获取礼包
-        </div>
-        <div className="context-menu-divider" />
-        <div className="context-menu-item danger" onClick={onDelete}>
-          <span className="icon">🗑</span>
-          删除账号
-        </div>
+        {items.map((item, i) => {
+          if (item === "divider") {
+            return <div key={`divider-${i}`} className="my-1 h-px bg-border" />;
+          }
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.label}
+              className={cn(
+                "flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors",
+                item.disabled
+                  ? "text-muted-foreground cursor-default"
+                  : item.danger
+                    ? "text-destructive hover:bg-destructive/10"
+                    : "hover:bg-accent"
+              )}
+              onClick={item.disabled ? undefined : item.onClick}
+              title={item.disabled ? "当前已是此账号" : undefined}
+            >
+              <Icon className="h-4 w-4" />
+              <span>{item.label}</span>
+            </div>
+          );
+        })}
       </div>
     </>
   );
