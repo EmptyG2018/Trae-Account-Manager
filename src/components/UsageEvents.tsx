@@ -115,9 +115,9 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">账号使用情况</h2>
+        <h2 className="text-lg font-semibold tracking-tight">账号使用情况</h2>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border p-0.5">
+          <div className="flex rounded-lg bg-muted p-0.5">
             {filters.map((f) => (
               <button
                 key={f.key}
@@ -139,7 +139,7 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
       </div>
 
       {showDatePicker && (
-        <div className="flex items-center gap-2 rounded-lg border bg-card p-3">
+        <div className="flex items-center gap-2 rounded-lg bg-card p-3">
           <input
             type="date"
             value={startDate}
@@ -165,7 +165,7 @@ export function UsageEvents({ accountId, onError }: UsageEventsProps) {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-lg bg-card">
         {loading ? (
           <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">加载中...</div>
         ) : events.length === 0 ? (

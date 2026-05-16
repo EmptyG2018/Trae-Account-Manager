@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Trash2, Upload, Download, RefreshCw, LayoutGrid, List, Plus, X } from "lucide-react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { TitleBar } from "./components/TitleBar";
 import { Sidebar } from "./components/Sidebar";
 import { AccountCard } from "./components/AccountCard";
@@ -34,6 +35,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [osType, setOsType] = useState<string>("unknown");
 
   const { toasts, addToast, removeToast } = useToast();
 
@@ -93,6 +95,7 @@ function App() {
   }, []);
 
   useEffect(() => { loadAccounts(); }, [loadAccounts]);
+  useEffect(() => { api.getOsType().then(setOsType); }, []);
 
   useEffect(() => {
     api.refreshAllTokens().then((refreshed) => {
@@ -412,9 +415,9 @@ function App() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
-      <TitleBar />
+      <TitleBar osType={osType} />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+        <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} osType={osType} />
 
         <div className="flex flex-1 flex-col overflow-hidden">
         {error && (
@@ -427,17 +430,23 @@ function App() {
         )}
 
         {currentPage === "dashboard" && (
-          <div className="flex-1 overflow-y-auto p-6">
+          <div
+            className="flex-1 overflow-y-auto p-6"
+            {...(osType === "macos" ? { "data-tauri-drag-region": true, onMouseDown: (e: React.MouseEvent) => { if (e.buttons === 1) getCurrentWindow().startDragging(); } } : {})}
+          >
             <Dashboard accounts={accounts} />
           </div>
         )}
 
         {currentPage === "accounts" && (
           <>
-            <header className="flex items-center justify-between border-b px-6 py-4">
+            <header
+              className="flex items-center justify-between px-6 py-4"
+              {...(osType === "macos" ? { "data-tauri-drag-region": true, onMouseDown: (e: React.MouseEvent) => { if (e.buttons === 1) getCurrentWindow().startDragging(); } } : {})}
+            >
               <div>
-                <h2 className="text-lg font-semibold">账号管理</h2>
-                <p className="text-sm text-muted-foreground">管理您的账号</p>
+                <h2 className="text-lg font-semibold tracking-tight">账号管理</h2>
+                <p className="mt-0.5 text-sm text-muted-foreground/70">管理您的账号</p>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">共 {accounts.length} 个账号</span>
@@ -465,7 +474,7 @@ function App() {
 
             <main className="flex-1 overflow-y-auto p-6">
               {accounts.length > 0 && (
-                <div className="mb-4 flex items-center justify-between rounded-lg border bg-card px-4 py-2">
+                <div className="mb-4 flex items-center justify-between rounded-lg bg-card px-4 py-2">
                   <div className="flex items-center gap-3">
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -488,7 +497,7 @@ function App() {
                       </div>
                     )}
                   </div>
-                  <div className="flex rounded-lg border p-0.5">
+                  <div className="flex rounded-lg bg-muted p-0.5">
                     <button
                       className={cn("rounded-md p-1.5 transition-colors", viewMode === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
                       onClick={() => setViewMode("grid")}
@@ -536,7 +545,7 @@ function App() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-lg border bg-card">
+                <div className="rounded-lg bg-card">
                   <div className="grid grid-cols-[auto_auto_1fr_auto_auto_auto_auto] items-center gap-4 border-b px-4 py-2 text-xs font-medium text-muted-foreground">
                     <div className="w-5" />
                     <div className="w-8" />
@@ -565,9 +574,12 @@ function App() {
 
         {currentPage === "settings" && (
           <>
-            <header className="border-b px-6 py-4">
-              <h2 className="text-lg font-semibold">设置</h2>
-              <p className="text-sm text-muted-foreground">配置应用程序选项</p>
+            <header
+              className="px-6 py-4"
+              {...(osType === "macos" ? { "data-tauri-drag-region": true, onMouseDown: (e: React.MouseEvent) => { if (e.buttons === 1) getCurrentWindow().startDragging(); } } : {})}
+            >
+              <h2 className="text-lg font-semibold tracking-tight">设置</h2>
+              <p className="mt-0.5 text-sm text-muted-foreground/70">配置应用程序选项</p>
             </header>
             <div className="flex-1 overflow-y-auto p-6">
               <Settings onToast={addToast} />
@@ -577,9 +589,12 @@ function App() {
 
         {currentPage === "about" && (
           <>
-            <header className="border-b px-6 py-4">
-              <h2 className="text-lg font-semibold">关于</h2>
-              <p className="text-sm text-muted-foreground">应用程序信息</p>
+            <header
+              className="px-6 py-4"
+              {...(osType === "macos" ? { "data-tauri-drag-region": true, onMouseDown: (e: React.MouseEvent) => { if (e.buttons === 1) getCurrentWindow().startDragging(); } } : {})}
+            >
+              <h2 className="text-lg font-semibold tracking-tight">关于</h2>
+              <p className="mt-0.5 text-sm text-muted-foreground/70">应用程序信息</p>
             </header>
             <div className="flex-1 overflow-y-auto p-6">
               <About />

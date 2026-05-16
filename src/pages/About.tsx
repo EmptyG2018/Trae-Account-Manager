@@ -9,19 +9,19 @@ export function About() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col items-center gap-3 rounded-xl border bg-card p-6 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-xl bg-card p-6 text-center">
         <div className="h-16 w-16 overflow-hidden rounded-xl">
           <img src={logoImage} alt="Logo" className="h-full w-full object-cover" />
         </div>
-        <h3 className="text-lg font-semibold">Trae Account Manager</h3>
-        <p className="text-sm text-muted-foreground">版本 1.0.0</p>
-        <p className="max-w-md text-sm text-muted-foreground">
+        <h3 className="text-lg font-semibold tracking-tight">Trae Account Manager</h3>
+        <p className="text-sm text-muted-foreground/60">版本 1.0.0</p>
+        <p className="max-w-md text-sm text-muted-foreground/70">
           Trae 账号使用量管理工具，帮助您轻松管理多个 Trae 账号的使用情况。
         </p>
       </div>
 
-      <div className="rounded-xl border bg-card p-6">
-        <h3 className="mb-3 text-base font-semibold">功能特性</h3>
+      <div className="rounded-xl bg-card p-6">
+        <h3 className="mb-3 text-base font-semibold tracking-tight">功能特性</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li>多账号使用量统计</li>
           <li>实时刷新账号数据</li>
@@ -30,8 +30,8 @@ export function About() {
         </ul>
       </div>
 
-      <div className="rounded-xl border bg-card p-6">
-        <h3 className="mb-3 text-base font-semibold">技术栈</h3>
+      <div className="rounded-xl bg-card p-6">
+        <h3 className="mb-3 text-base font-semibold tracking-tight">技术栈</h3>
         <div className="flex flex-wrap gap-2">
           {["Tauri", "React", "TypeScript", "Rust"].map((tech) => (
             <Badge key={tech} variant="secondary">{tech}</Badge>
@@ -39,8 +39,8 @@ export function About() {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card p-6">
-        <h3 className="mb-2 text-base font-semibold">赞赏支持</h3>
+      <div className="rounded-xl bg-card p-6">
+        <h3 className="mb-2 text-base font-semibold tracking-tight">赞赏支持</h3>
         <p className="mb-4 text-sm text-muted-foreground">
           如果这个工具对您有帮助，欢迎请作者喝杯咖啡
         </p>
@@ -62,7 +62,7 @@ export function About() {
         >
           <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              className="absolute -right-2 -top-2 rounded-full bg-background p-1 shadow-md"
+              className="absolute -right-2 -top-2 rounded-full bg-background p-1"
               onClick={() => setShowImageModal(false)}
             >
               <X className="h-4 w-4" />

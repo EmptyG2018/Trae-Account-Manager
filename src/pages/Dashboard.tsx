@@ -73,17 +73,17 @@ export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">欢迎回来</h1>
-          <p className="text-sm text-muted-foreground">这是您的账号使用概览</p>
+          <h1 className="text-2xl font-bold tracking-tight">欢迎回来</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground/70">账号使用概览</p>
         </div>
-        <div className="flex gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold">{totalAccounts}</div>
-            <div className="text-xs text-muted-foreground">账号总数</div>
+        <div className="flex gap-6">
+          <div className="text-right">
+            <div className="text-2xl font-bold tabular-nums tracking-tight">{totalAccounts}</div>
+            <div className="text-xs text-muted-foreground/60">账号总数</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{activeAccounts}</div>
-            <div className="text-xs text-muted-foreground">可用账号</div>
+          <div className="text-right">
+            <div className="text-2xl font-bold tabular-nums tracking-tight text-emerald-600">{activeAccounts}</div>
+            <div className="text-xs text-muted-foreground/60">可用账号</div>
           </div>
         </div>
       </div>
@@ -93,12 +93,12 @@ export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.key} className="rounded-xl border bg-card p-4">
+            <div key={card.key} className="rounded-xl bg-card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-muted-foreground">{card.label}</div>
-                  <div className="mt-1 text-2xl font-bold">{statValues[card.key]}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">{statSublabels[card.key]}</div>
+                  <div className="text-xs text-muted-foreground/60">{card.label}</div>
+                  <div className="mt-1 text-2xl font-bold tabular-nums tracking-tight">{statValues[card.key]}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground/60">{statSublabels[card.key]}</div>
                 </div>
                 <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${card.color}`}>
                   <Icon className="h-5 w-5 text-white" />
@@ -111,9 +111,9 @@ export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
 
       {/* Charts */}
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-xl bg-card p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">使用量分布</h3>
+            <h3 className="text-sm font-semibold tracking-tight">使用量分布</h3>
             <Badge variant="secondary">{usagePercent}%</Badge>
           </div>
           <div className="relative">
@@ -152,8 +152,8 @@ export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
           </div>
         </div>
 
-        <div className="rounded-xl border bg-card p-4">
-          <h3 className="mb-3 text-sm font-semibold">套餐分布</h3>
+        <div className="rounded-xl bg-card p-4">
+          <h3 className="mb-3 text-sm font-semibold tracking-tight">套餐分布</h3>
           {quotaData.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -184,9 +184,9 @@ export const Dashboard = memo(function Dashboard({ accounts }: DashboardProps) {
         <>
           <UsageEvents accountId={accounts.find(a => a.is_current)?.id || accounts[0]?.id || ''} />
 
-          <div className="rounded-xl border bg-card p-4">
+          <div className="rounded-xl bg-card p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">账号概览</h3>
+              <h3 className="text-sm font-semibold tracking-tight">账号概览</h3>
               <Badge variant="secondary">{accounts.length} 个账号</Badge>
             </div>
             <div className="space-y-2">

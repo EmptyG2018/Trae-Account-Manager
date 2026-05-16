@@ -111,8 +111,8 @@ export function Settings({ onToast }: SettingsProps) {
     <div className="space-y-6">
       {/* 机器码 */}
       <div className="space-y-3">
-        <h3 className="text-base font-semibold">机器码</h3>
-        <div className="rounded-xl border bg-card p-5">
+        <h3 className="text-base font-semibold tracking-tight">机器码</h3>
+        <div className="rounded-xl bg-card p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
               <Layers className="h-5 w-5 text-primary" />
@@ -151,8 +151,8 @@ export function Settings({ onToast }: SettingsProps) {
 
       {/* 路径设置 */}
       <div className="space-y-3">
-        <h3 className="text-base font-semibold">客户端路径</h3>
-        <div className="rounded-xl border bg-card p-5">
+        <h3 className="text-base font-semibold tracking-tight">客户端路径</h3>
+        <div className="rounded-xl bg-card p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
               <Folder className="h-5 w-5 text-primary" />
@@ -187,8 +187,8 @@ export function Settings({ onToast }: SettingsProps) {
 
       {/* 通用设置 */}
       <div className="space-y-3">
-        <h3 className="text-base font-semibold">通用设置</h3>
-        <div className="rounded-xl border bg-card divide-y">
+        <h3 className="text-base font-semibold tracking-tight">通用设置</h3>
+        <div className="rounded-xl bg-card divide-y">
           <div className="flex items-center justify-between p-4">
             <div>
               <div className="text-sm font-medium">自动刷新</div>
@@ -218,8 +218,8 @@ export function Settings({ onToast }: SettingsProps) {
 
       {/* 数据管理 */}
       <div className="space-y-3">
-        <h3 className="text-base font-semibold">数据管理</h3>
-        <div className="rounded-xl border bg-card divide-y">
+        <h3 className="text-base font-semibold tracking-tight">数据管理</h3>
+        <div className="rounded-xl bg-card divide-y">
           <div className="flex items-center justify-between p-4">
             <div>
               <div className="text-sm font-medium">导出数据</div>

@@ -73,9 +73,9 @@ export function AccountCard({ account, usage, selected, onSelect, onContextMenu 
   return (
     <div
       className={cn(
-        "group relative cursor-pointer rounded-xl border bg-card p-4 transition-all hover:shadow-md",
+        "group relative cursor-pointer rounded-xl bg-card p-4 transition-all",
         selected && "ring-2 ring-primary",
-        account.is_current && "border-primary/30 bg-primary/5"
+        account.is_current && "ring-1 ring-primary/20 bg-primary/5"
       )}
       onClick={() => onSelect(account.id)}
       onContextMenu={(e) => onContextMenu(e, account.id)}
