@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Layers, RefreshCw, Copy, Trash2, Search, Pencil, Folder, AlertTriangle, Info } from "lucide-react";
+import { Layers, RefreshCw, Copy, Trash2, Search, Pencil, Folder, AlertTriangle, Info, Shield, Database, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -111,20 +111,23 @@ export function Settings({ onToast }: SettingsProps) {
     <div className="space-y-6">
       {/* 机器码 */}
       <div className="space-y-3">
-        <h3 className="text-base font-semibold tracking-tight">机器码</h3>
-        <div className="rounded-xl bg-card p-5">
+        <div className="flex items-center gap-2">
+          <Shield className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold tracking-tight">机器码</h3>
+        </div>
+        <div className="glass-card p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <Layers className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <div className="font-medium">MachineId</div>
+              <div className="text-sm font-semibold">MachineId</div>
               <div className="text-xs text-muted-foreground">客户端唯一标识符</div>
             </div>
           </div>
 
-          <div className="mt-3 rounded-lg bg-muted px-3 py-2">
-            <code className="text-sm break-all">{traeRefreshing ? "加载中..." : traeMachineId}</code>
+          <div className="mt-3.5 rounded-lg bg-muted/50 px-3.5 py-2.5 ring-1 ring-border/50">
+            <code className="font-mono text-[13px] break-all text-foreground/80">{traeRefreshing ? "加载中..." : traeMachineId}</code>
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
@@ -142,7 +145,7 @@ export function Settings({ onToast }: SettingsProps) {
             </Button>
           </div>
 
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-xs text-yellow-800">
+          <div className="mt-3.5 flex items-start gap-2.5 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>清除登录状态会重置机器码并删除所有登录信息，客户端将需要重新登录。请先关闭客户端。</span>
           </div>
@@ -151,20 +154,23 @@ export function Settings({ onToast }: SettingsProps) {
 
       {/* 路径设置 */}
       <div className="space-y-3">
-        <h3 className="text-base font-semibold tracking-tight">客户端路径</h3>
-        <div className="rounded-xl bg-card p-5">
+        <div className="flex items-center gap-2">
+          <Folder className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold tracking-tight">客户端路径</h3>
+        </div>
+        <div className="glass-card p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Folder className="h-5 w-5 text-primary" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10">
+              <Folder className="h-5 w-5 text-sky-600 dark:text-sky-400" />
             </div>
             <div>
-              <div className="font-medium">安装路径</div>
+              <div className="text-sm font-semibold">安装路径</div>
               <div className="text-xs text-muted-foreground">用于自动打开客户端</div>
             </div>
           </div>
 
-          <div className="mt-3 rounded-lg bg-muted px-3 py-2">
-            <code className="text-sm break-all">{traePathLoading ? "加载中..." : (traePath || "未设置")}</code>
+          <div className="mt-3.5 rounded-lg bg-muted/50 px-3.5 py-2.5 ring-1 ring-border/50">
+            <code className="font-mono text-[13px] break-all text-foreground/80">{traePathLoading ? "加载中..." : (traePath || "未设置")}</code>
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
@@ -178,7 +184,7 @@ export function Settings({ onToast }: SettingsProps) {
             </Button>
           </div>
 
-          <div className="mt-3 flex items-start gap-2 rounded-lg border bg-blue-50 p-3 text-xs text-blue-800">
+          <div className="mt-3.5 flex items-start gap-2.5 rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-xs text-sky-700 dark:text-sky-400">
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
             <span>切换账号后会自动打开客户端。如果自动扫描找不到，请手动设置 Trae.exe 的完整路径。</span>
           </div>
@@ -187,8 +193,11 @@ export function Settings({ onToast }: SettingsProps) {
 
       {/* 通用设置 */}
       <div className="space-y-3">
-        <h3 className="text-base font-semibold tracking-tight">通用设置</h3>
-        <div className="rounded-xl bg-card divide-y">
+        <div className="flex items-center gap-2">
+          <Sliders className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold tracking-tight">通用设置</h3>
+        </div>
+        <div className="glass-card divide-y divide-border/50">
           <div className="flex items-center justify-between p-4">
             <div>
               <div className="text-sm font-medium">自动刷新</div>
@@ -218,8 +227,11 @@ export function Settings({ onToast }: SettingsProps) {
 
       {/* 数据管理 */}
       <div className="space-y-3">
-        <h3 className="text-base font-semibold tracking-tight">数据管理</h3>
-        <div className="rounded-xl bg-card divide-y">
+        <div className="flex items-center gap-2">
+          <Database className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold tracking-tight">数据管理</h3>
+        </div>
+        <div className="glass-card divide-y divide-border/50">
           <div className="flex items-center justify-between p-4">
             <div>
               <div className="text-sm font-medium">导出数据</div>

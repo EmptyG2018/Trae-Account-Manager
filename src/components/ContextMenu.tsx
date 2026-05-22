@@ -83,29 +83,29 @@ export function ContextMenu({
       <div className="fixed inset-0 z-[9998]" onClick={onClose} />
       <div
         ref={menuRef}
-        className="fixed z-[9999] min-w-[160px] overflow-hidden rounded-lg border border-border bg-popover p-1 shadow-lg"
+        className="fixed z-[9999] min-w-[170px] overflow-hidden rounded-xl border border-border/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-xl"
         style={{ left: x, top: y }}
       >
         {items.map((item, i) => {
           if (item === "divider") {
-            return <div key={`divider-${i}`} className="my-1 h-px bg-border" />;
+            return <div key={`divider-${i}`} className="my-1 h-px bg-border/60" />;
           }
           const Icon = item.icon;
           return (
             <div
               key={item.label}
               className={cn(
-                "flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors",
+                "flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all duration-150",
                 item.disabled
-                  ? "text-muted-foreground cursor-default"
+                  ? "text-muted-foreground/50 cursor-default"
                   : item.danger
                     ? "text-destructive hover:bg-destructive/10"
-                    : "hover:bg-accent"
+                    : "hover:bg-accent text-foreground/80 hover:text-foreground"
               )}
               onClick={item.disabled ? undefined : item.onClick}
               title={item.disabled ? "当前已是此账号" : undefined}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-3.5 w-3.5" />
               <span>{item.label}</span>
             </div>
           );

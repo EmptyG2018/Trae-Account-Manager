@@ -22,7 +22,7 @@ export function Sidebar({ currentPage, onNavigate, osType }: SidebarProps) {
   const isMac = osType === "macos";
 
   return (
-    <aside className="flex h-screen w-[232px] flex-col bg-background">
+    <aside className="flex h-screen w-[232px] flex-col border-r border-sidebar-border bg-sidebar">
       {/* Mac: traffic lights */}
       {isMac && (
         <div
@@ -59,14 +59,17 @@ export function Sidebar({ currentPage, onNavigate, osType }: SidebarProps) {
         className={cn("flex items-center gap-3 px-5", isMac ? "pt-2 pb-5" : "pt-5 pb-5")}
         {...(isMac ? {} : { "data-tauri-drag-region": true, onMouseDown: (e: React.MouseEvent) => { if (e.buttons === 1) appWindow.startDragging(); } })}
       >
-        <div className="h-7 w-7 overflow-hidden rounded-lg">
+        <div className="relative h-8 w-8 overflow-hidden rounded-xl shadow-sm">
           <img src={logoImage} alt="Logo" className="h-full w-full object-cover" />
         </div>
-        <span className="text-sm font-semibold tracking-tight text-foreground/80">TAM</span>
+        <div>
+          <span className="text-sm font-bold tracking-tight text-sidebar-foreground">TAM</span>
+          <span className="ml-1.5 text-[10px] font-medium text-sidebar-primary/60">v1.0</span>
+        </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-1 px-3">
+      <nav className="flex-1 space-y-0.5 px-3">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
@@ -74,14 +77,17 @@ export function Sidebar({ currentPage, onNavigate, osType }: SidebarProps) {
             <div
               key={item.id}
               className={cn(
-                "flex cursor-pointer items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
+                "group relative flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200",
                 isActive
-                  ? "bg-card text-foreground"
-                  : "text-muted-foreground hover:bg-card/60 hover:text-foreground"
+                  ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
+                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )}
               onClick={() => onNavigate(item.id)}
             >
-              <Icon className="h-[18px] w-[18px]" />
+              {isActive && (
+                <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-sidebar-primary" />
+              )}
+              <Icon className={cn("h-[18px] w-[18px] transition-colors", isActive ? "text-sidebar-primary" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/70")} />
               <span>{item.label}</span>
             </div>
           );
@@ -89,8 +95,8 @@ export function Sidebar({ currentPage, onNavigate, osType }: SidebarProps) {
       </nav>
 
       {/* Version */}
-      <div className="px-5 py-4">
-        <span className="text-[11px] text-muted-foreground/50">v1.0.0</span>
+      <div className="border-t border-sidebar-border px-5 py-3">
+        <span className="text-[11px] font-medium text-sidebar-foreground/30">v1.0.0</span>
       </div>
     </aside>
   );

@@ -1,5 +1,6 @@
 import { MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import type { UsageSummary } from "../types";
 
@@ -20,10 +21,10 @@ interface AccountListItemProps {
 }
 
 const statusConfig = {
-  normal: { label: "正常", dot: "bg-green-500" },
-  expiring: { label: "即将过期", dot: "bg-yellow-500" },
+  normal: { label: "正常", dot: "bg-emerald-500" },
+  expiring: { label: "即将过期", dot: "bg-amber-500" },
   expired: { label: "过期", dot: "bg-red-500" },
-  unknown: { label: "未知", dot: "bg-gray-400" },
+  unknown: { label: "未知", dot: "bg-muted-foreground/50" },
 };
 
 export function AccountListItem({ account, usage, selected, onSelect, onContextMenu }: AccountListItemProps) {
@@ -31,12 +32,6 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
   const totalLimit = usage ? usage.fast_request_limit + usage.extra_fast_request_limit : 0;
   const totalLeft = usage ? usage.fast_request_left + usage.extra_fast_request_left : 0;
   const usagePercent = totalLimit > 0 ? Math.round((totalUsed / totalLimit) * 100) : 0;
-
-  const getUsageColor = () => {
-    if (usagePercent >= 80) return "bg-red-500";
-    if (usagePercent >= 50) return "bg-yellow-500";
-    return "bg-green-500";
-  };
 
   const formatCreatedDate = (timestamp: number) => {
     if (!timestamp) return "-";
@@ -67,9 +62,9 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
   return (
     <div
       className={cn(
-        "grid cursor-pointer items-center gap-4 rounded-lg border-b px-4 py-3 transition-colors hover:bg-accent/50",
+        "grid cursor-pointer items-center gap-4 border-b border-border/50 px-4 py-3 transition-colors hover:bg-muted/30",
         "grid-cols-[auto_auto_1fr_auto_auto_auto_auto]",
-        selected && "bg-primary/5"
+        selected && "bg-primary/[0.04]"
       )}
       onClick={() => onSelect(account.id)}
       onContextMenu={(e) => onContextMenu(e, account.id)}
@@ -81,9 +76,9 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
         onClick={(e) => e.stopPropagation()}
       />
 
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-xs font-semibold text-primary">
         {account.avatar_url ? (
-          <img src={account.avatar_url} alt={account.name} className="h-full w-full rounded-full object-cover" />
+          <img src={account.avatar_url} alt={account.name} className="h-full w-full rounded-lg object-cover" />
         ) : (
           (account.email || account.name).charAt(0).toUpperCase()
         )}
@@ -95,24 +90,22 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
       </div>
 
       <div className="flex items-center gap-1.5">
-        <Badge variant="secondary" className="text-xs">{usage?.plan_type || account.plan_type || "Free"}</Badge>
+        <Badge variant="secondary" className="text-[11px]">{usage?.plan_type || account.plan_type || "Free"}</Badge>
         {usage && usage.extra_fast_request_limit > 0 && (
-          <Badge variant="outline" className="text-xs">礼包</Badge>
+          <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-600 dark:text-amber-400">礼包</Badge>
         )}
       </div>
 
       <div className="w-32">
-        <div className="mb-1 flex items-center justify-between text-xs">
-          <span className="text-muted-foreground"><strong className="text-foreground">{Math.round(totalUsed)}</strong> / {totalLimit}</span>
+        <div className="mb-1 flex items-center justify-between text-[11px]">
+          <span className="text-muted-foreground"><strong className="font-semibold text-foreground">{Math.round(totalUsed)}</strong> / {totalLimit}</span>
           <span className="text-muted-foreground">剩余 {Math.round(totalLeft)}</span>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-          <div className={cn("h-full rounded-full transition-all", getUsageColor())} style={{ width: `${Math.min(usagePercent, 100)}%` }} />
-        </div>
+        <Progress value={usagePercent} className="h-1.5" />
       </div>
 
-      <div className="text-center text-xs text-muted-foreground">
-        <div>添加时间</div>
+      <div className="text-center text-[11px] text-muted-foreground">
+        <div className="opacity-60">添加时间</div>
         <div className="font-medium text-foreground">{formatCreatedDate(account.created_at)}</div>
       </div>
 
@@ -122,7 +115,7 @@ export function AccountListItem({ account, usage, selected, onSelect, onContextM
       </div>
 
       <button
-        className="rounded-md p-1 transition-colors hover:bg-accent"
+        className="rounded-md p-1.5 transition-colors hover:bg-muted"
         title="更多操作"
         onClick={(e) => {
           e.stopPropagation();
