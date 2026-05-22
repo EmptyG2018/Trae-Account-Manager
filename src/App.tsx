@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Trash2, Upload, Download, RefreshCw, LayoutGrid, List, Plus, X, Users } from "lucide-react";
+import { Trash2, Upload, Download, RefreshCw, LayoutGrid, List, Plus, X } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { TitleBar } from "./components/TitleBar";
 import { Sidebar } from "./components/Sidebar";
@@ -474,7 +474,7 @@ function App() {
 
             <main className="flex-1 overflow-y-auto p-6">
               {accounts.length > 0 && (
-                <div className="mb-4 flex items-center justify-between glass-card px-4 py-2.5">
+                <div className="mb-4 flex items-center justify-between rounded-lg bg-card px-4 py-2">
                   <div className="flex items-center gap-3">
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -518,18 +518,13 @@ function App() {
 
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20">
-                  <div className="relative h-10 w-10">
-                    <div className="absolute inset-0 rounded-full border-[3px] border-muted" />
-                    <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-transparent border-t-primary" />
-                  </div>
-                  <p className="mt-4 text-sm font-medium text-muted-foreground">加载中...</p>
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  <p className="mt-3 text-sm text-muted-foreground">加载中...</p>
                 </div>
               ) : accounts.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 py-20 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
-                    <Users className="h-8 w-8 text-muted-foreground/50" />
-                  </div>
-                  <h3 className="text-lg font-semibold">暂无账号</h3>
+                  <div className="text-4xl">📋</div>
+                  <h3 className="text-lg font-medium">暂无账号</h3>
                   <p className="text-sm text-muted-foreground">点击上方按钮添加账号，或导入已有账号</p>
                   <div className="flex gap-2">
                     <Button onClick={() => setShowAddModal(true)}>添加账号</Button>
@@ -550,8 +545,8 @@ function App() {
                   ))}
                 </div>
               ) : (
-                <div className="glass-card overflow-hidden">
-                  <div className="grid grid-cols-[auto_auto_1fr_auto_auto_auto_auto] items-center gap-4 border-b border-border/50 px-4 py-2.5 text-xs font-medium text-muted-foreground bg-muted/30">
+                <div className="rounded-lg bg-card">
+                  <div className="grid grid-cols-[auto_auto_1fr_auto_auto_auto_auto] items-center gap-4 border-b px-4 py-2 text-xs font-medium text-muted-foreground">
                     <div className="w-5" />
                     <div className="w-8" />
                     <div>账号信息</div>

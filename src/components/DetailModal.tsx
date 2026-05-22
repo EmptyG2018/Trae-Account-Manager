@@ -57,7 +57,7 @@ export function DetailModal({ isOpen, onClose, account, usage }: DetailModalProp
           <DialogTitle>账号详情</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="space-y-4">
           <Section title="基本信息">
             <Row label="用户名" value={account.name} />
             <Row label="邮箱" value={account.email || "-"} />
@@ -125,9 +125,9 @@ export function DetailModal({ isOpen, onClose, account, usage }: DetailModalProp
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-2.5">
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">{title}</h4>
-      <div className="rounded-lg bg-muted/30 p-3 space-y-2 ring-1 ring-border/30">{children}</div>
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
+      <div className="space-y-1.5">{children}</div>
     </div>
   );
 }
@@ -136,7 +136,7 @@ function Row({ label, value, highlight }: { label: string; value: string; highli
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-muted-foreground">{label}</span>
-      <span className={highlight ? "font-semibold text-primary" : "font-medium"}>{value}</span>
+      <span className={highlight ? "font-medium text-green-600" : "font-medium"}>{value}</span>
     </div>
   );
 }
@@ -144,7 +144,7 @@ function Row({ label, value, highlight }: { label: string; value: string; highli
 function CopyRow({ text, field, copiedField, onCopy }: { text: string; field: string; copiedField: string | null; onCopy: (text: string, field: string) => void }) {
   return (
     <div className="flex items-center gap-2">
-      <code className="flex-1 truncate rounded-md bg-muted/50 px-2.5 py-2 text-xs font-mono ring-1 ring-border/30">{text}</code>
+      <code className="flex-1 truncate rounded bg-muted px-2 py-1.5 text-xs">{text}</code>
       <Button
         variant="ghost"
         size="icon"
@@ -152,7 +152,7 @@ function CopyRow({ text, field, copiedField, onCopy }: { text: string; field: st
         onClick={() => onCopy(text, field)}
         title={copiedField === field ? "已复制" : "复制"}
       >
-        {copiedField === field ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+        {copiedField === field ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
       </Button>
     </div>
   );
